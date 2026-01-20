@@ -1,6 +1,6 @@
 package com.example.payment.service;
 
-import com.example.payment.dto.RazorpayPaymentResponse;
+import com.example.payment.dto.PaymentRazorpayResponse;
 import com.example.payment.model.Order;
 import com.example.payment.model.Payment;
 import com.example.payment.model.enums.OrderStatus;
@@ -30,7 +30,7 @@ public class PaymentService {
         return (int) Math.round(amount * 100);
     }
 
-    public RazorpayPaymentResponse createRazorpayPayment(String orderId, Double amount) throws RazorpayException {
+    public PaymentRazorpayResponse createRazorpayPayment(String orderId, Double amount) throws RazorpayException {
         Order order = orderService.getOrder(orderId);
 
         if (order.getStatus() != OrderStatus.CREATED) {
@@ -63,7 +63,7 @@ public class PaymentService {
         paymentRepository.save(payment);
 
         // 3) Return to client
-        RazorpayPaymentResponse response = new RazorpayPaymentResponse();
+        PaymentRazorpayResponse response = new PaymentRazorpayResponse();
         response.setOrderId(orderId);
         response.setAmount(amount);
         response.setStatus(payment.getStatus().name());

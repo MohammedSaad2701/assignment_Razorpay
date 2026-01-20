@@ -2,48 +2,213 @@
 <html>
 
 <head>
-    <title>Razorpay Integration (Callback URL)</title>
+    <title>Ecommerce Razorpay Demo</title>
+    <meta charset="UTF-8" />
 </head>
 
-<body>
-    <form id="paymentForm">
-        <label for="amount">Amount (INR):</label>
-        <input type="number" id="amount" name="amount" required><br><br>
-        <button type="button" onclick="makePayment()">Pay Now</button>
-    </form>
+<body style="font-family: Arial; max-width: 800px; margin: 20px auto;">
+<h2>🛒 Minimal E-Commerce (Razorpay Checkout)</h2>
 
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-    <script>
+<hr />
 
-        function makePayment() {
-            const amount = document.getElementById('amount').value;
-            fetch('/create-order', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `amount=${amount}`
-            })
-                .then(response => response.json())
-                .then(order => {
-                    const options = {
-                        "key": "rzp_test_S65IPBWLddy1iu",
-                        "amount": order.amount,
-                        "currency": order.currency,
-                        "name": "Your Company",
-                        "description": "Payment for your product",
-                        "order_id": order.id,
-                        "callback_url": "/payment-callback",
-                        "prefill": {
-                            "name": "User Name",
-                            "email": "user@example.com",
-                        }
-                    };
-                    const rzp1 = new Razorpay(options);
-                    rzp1.open();
-                });
+<h3>1) Products</h3>
+<button onclick="loadProducts()">Load Products</button>
+<div id="products"></div>
+
+<hr />
+
+<h3>2) Cart</h3>
+<label>User ID:</label>
+<input type="text" id="userId" value="user123" />
+<button onclick="loadCart()">View Cart</button>
+<button onclick="clearCart()">Clear Cart</button>
+
+<div id="cart"></div>
+
+<hr />
+
+<h3>3) Create Order</h3>
+<button onclick="createOrder()">Create Order From Cart</button>
+<div id="order"></div>
+
+<hr />
+
+<h3>4) Pay with Razorpay</h3>
+<button onclick="payNow()">Pay Now</button>
+<div id="payment"></div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+    let latestOrder = null;   // store last created order
+    let latestPayment = null; // store payment create response
+
+    async function loadProducts() {
+        const res = await fetch("/api/products");
+        const products = await res.json();
+
+        const div = document.getElementById("products");
+        div.innerHTML = "";
+
+        if (products.length === 0) {
+            div.innerHTML = "<p>No products found. Create products using Postman first.</p>";
+            return;
         }
-    </script>
+
+        products.forEach(p => {
+            const item = document.createElement("div");
+            item.style.border = "1px solid #ccc";
+            item.style.padding = "10px";
+            item.style.margin = "10px 0";
+
+            item.innerHTML = `
+                <b>${p.name}</b><br/>
+                Price: ₹${p.price}<br/>
+                Stock: ${p.stock}<br/><br/>
+                <button onclick="addToCart('${p.id}')">Add to Cart</button>
+            `;
+            div.appendChild(item);
+        });
+    }
+
+    async function addToCart(productId) {
+        const userId = document.getElementById("userId").value;
+
+        const body = {
+            userId: userId,
+            productId: productId,
+            quantity: 1
+        };
+
+        const res = await fetch("/api/cart/add", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        });
+
+        const data = await res.json();
+        alert("Added to cart: " + data.productId);
+        loadCart();
+    }
+
+    async function loadCart() {
+        const userId = document.getElementById("userId").value;
+
+        const res = await fetch(`/api/cart/${userId}`);
+        const cartItems = await res.json();
+
+        const div = document.getElementById("cart");
+        div.innerHTML = "";
+
+        if (cartItems.length === 0) {
+            div.innerHTML = "<p>Cart is empty.</p>";
+            return;
+        }
+
+        cartItems.forEach(ci => {
+            const row = document.createElement("div");
+            row.innerHTML = `ProductId: <b>${ci.productId}</b> | Quantity: <b>${ci.quantity}</b>`;
+            div.appendChild(row);
+        });
+    }
+
+    async function clearCart() {
+        const userId = document.getElementById("userId").value;
+
+        await fetch(`/api/cart/${userId}/clear`, {
+            method: "DELETE"
+        });
+
+        alert("Cart cleared");
+        loadCart();
+    }
+
+    async function createOrder() {
+        const userId = document.getElementById("userId").value;
+
+        const res = await fetch("/api/orders", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId })
+        });
+
+        const order = await res.json();
+        latestOrder = order;
+
+        document.getElementById("order").innerHTML = `
+            <p><b>Order Created!</b></p>
+            <p>Order ID: <b>${order.id}</b></p>
+            <p>Total Amount: <b>₹${order.totalAmount}</b></p>
+            <p>Status: <b>${order.status}</b></p>
+        `;
+    }
+
+    async function payNow() {
+        if (!latestOrder) {
+            alert("Create an order first!");
+            return;
+        }
+
+        // IMPORTANT:
+        // Use your backend Razorpay endpoint.
+        // If your endpoint is /api/payments/razorpay/create use that.
+        const res = await fetch("/api/payments/razorpay/create", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                orderId: latestOrder.id,
+                amount: latestOrder.totalAmount
+            })
+        });
+
+        const paymentResp = await res.json();
+        latestPayment = paymentResp;
+
+        document.getElementById("payment").innerHTML = `
+            <p><b>Payment Created!</b></p>
+            <p>Razorpay Order ID: <b>${paymentResp.razorpayOrderId}</b></p>
+            <p>Status: <b>${paymentResp.status}</b></p>
+        `;
+
+        const options = {
+            key: "", // put your test key here
+            amount: Math.round(latestOrder.totalAmount * 100), // paise
+            currency: "INR",
+            name: "Ecommerce Demo",
+            description: "Order Payment",
+            order_id: paymentResp.razorpayOrderId,
+
+            handler: async function (response) {
+                alert("Payment Success! Razorpay Payment ID: " + response.razorpay_payment_id);
+
+                // Webhook will update order status in backend automatically.
+                // We just poll order status after 2 seconds.
+                setTimeout(async () => {
+                    const updated = await fetch(`/api/orders/${latestOrder.id}`);
+                    const updatedOrder = await updated.json();
+
+                    document.getElementById("order").innerHTML = `
+                        <p><b>Order Updated!</b></p>
+                        <p>Order ID: <b>${updatedOrder.id}</b></p>
+                        <p>Total Amount: <b>₹${updatedOrder.totalAmount}</b></p>
+                        <p>Status: <b>${updatedOrder.status}</b></p>
+                    `;
+                }, 2000);
+            },
+
+            prefill: {
+                name: "Test User",
+                email: "test@example.com"
+            },
+            theme: {
+                color: "#3399cc"
+            }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.open();
+    }
+</script>
 </body>
 
 </html>

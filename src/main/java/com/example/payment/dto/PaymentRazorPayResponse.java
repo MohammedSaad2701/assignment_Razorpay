@@ -1,15 +1,15 @@
 package com.example.payment.dto;
 
-public class PaymentRazorPayResponse {
+public class PaymentRazorpayResponse {
     private String paymentId;
     private String orderId;
     private Double amount;
     private String status;
     private String razorpayOrderId;
 
-    public RazorpayPaymentResponse() {}
+    public PaymentRazorpayResponse() {}
 
-    public RazorpayPaymentResponse(String paymentId, String orderId, Double amount, String status, String razorpayOrderId) {
+    public PaymentRazorpayResponse(String paymentId, String orderId, Double amount, String status, String razorpayOrderId) {
         this.paymentId = paymentId;
         this.orderId = orderId;
         this.amount = amount;

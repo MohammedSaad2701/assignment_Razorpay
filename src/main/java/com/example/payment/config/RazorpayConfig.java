@@ -1,13 +1,12 @@
 package com.example.payment.config;
 
+import com.razorpay.RazorpayClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.razorpay.RazorpayClient;
-
 @Configuration
-public class RestTemplateConfig {
+public class RazorpayConfig {
 
     @Value("${razorpay.keyId}")
     private String keyId;

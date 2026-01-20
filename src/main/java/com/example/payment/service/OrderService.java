@@ -4,7 +4,7 @@ import com.example.payment.model.CartItem;
 import com.example.payment.model.Order;
 import com.example.payment.model.OrderItem;
 import com.example.payment.model.Product;
-import com.example.payment.model.Order;
+import com.example.payment.model.enums.OrderStatus;
 import com.example.payment.repository.OrderRepository;
 import org.springframework.stereotype.Service;
 
@@ -59,7 +59,7 @@ public class OrderService {
         Order order = new Order();
         order.setUserId(userId);
         order.setTotalAmount(total);
-        order.setStatus(Order.CREATED);
+        order.setStatus(OrderStatus.CREATED);
         order.setCreatedAt(Instant.now());
         order.setItems(orderItems);
 
@@ -76,9 +76,9 @@ public class OrderService {
                 .orElseThrow(() -> new RuntimeException("Order not found: " + orderId));
     }
 
-    public Order updateStatus(String orderId, OrderService service) {
+    public Order updateStatus(String orderId, OrderStatus status) {
         Order order = getOrder(orderId);
-        order.setStatus(service);
+        order.setStatus(status);
         return orderRepository.save(order);
     }
 }

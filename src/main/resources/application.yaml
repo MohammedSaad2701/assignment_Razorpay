@@ -1,14 +1,17 @@
 server:
-  port: 8081
+  port: 8080
 
 spring:
   application:
     name: Ecommerce
   data:
     mongodb:
-      uri: mongodb://localhost:27017/razorpay_db
+      uri: mongodb://localhost:27017/payment_db
 
 razorpay:
   keyId:
   keySecret:
   webhookSecret: secret_key_27
+
+
+

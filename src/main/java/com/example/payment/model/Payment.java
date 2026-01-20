@@ -1,9 +1,10 @@
 package com.example.payment.model;
 
-import java.time.Instant;
-
+import com.example.payment.model.enums.PaymentStatus;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.time.Instant;
 
 @Document(collection = "payments")
 public class Payment {
@@ -12,14 +13,14 @@ public class Payment {
 
     private String orderId;
     private Double amount;
-    private Payment status;
+    private PaymentStatus status;
     private String paymentId;
     private Instant createdAt;
     private String razorpayOrderId;
 
     public Payment() {}
 
-    public Payment(String id, String orderId, Double amount, Payment status, String paymentId, Instant createdAt, String razorpayOrderId) {
+    public Payment(String id, String orderId, Double amount, PaymentStatus status, String paymentId, Instant createdAt, String razorpayOrderId) {
         this.id = id;
         this.orderId = orderId;
         this.amount = amount;
@@ -37,8 +38,8 @@ public class Payment {
     public Double getAmount() { return amount; }
     public void setAmount(Double amount) { this.amount = amount; }
 
-    public Payment getStatus() { return status; }
-    public void setStatus(Payment status) { this.status = status; }
+    public PaymentStatus getStatus() { return status; }
+    public void setStatus(PaymentStatus status) { this.status = status; }
 
     public String getPaymentId() { return paymentId; }
     public void setPaymentId(String paymentId) { this.paymentId = paymentId; }
