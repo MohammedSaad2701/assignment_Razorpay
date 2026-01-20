@@ -1,0 +1,14 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: Ecommerce
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/razorpay_db
+
+razorpay:
+  keyId:
+  keySecret:
+  webhookSecret: secret_key_27
